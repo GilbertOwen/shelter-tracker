@@ -100,6 +100,25 @@ class ShelterTrackWorkflowTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_caretaker_dashboard_loads_assigned_dogs_without_ambiguous_columns(): void
+    {
+        [$shelter, $admin, $caretaker] = $this->usersForShelter();
+        $dog = Dog::create($this->dogData($shelter, ['name' => 'Dashboard Dog']));
+
+        CaretakerAssignment::create([
+            'dog_id' => $dog->id,
+            'caretaker_id' => $caretaker->id,
+            'assigned_by' => $admin->id,
+            'assigned_at' => now(),
+            'is_active' => true,
+        ]);
+
+        $this->actingAs($caretaker)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Dashboard Dog');
+    }
+
     public function test_reassigning_caretaker_closes_previous_assignment(): void
     {
         [$shelter, $admin, $caretaker, $otherCaretaker] = $this->usersForShelter();
