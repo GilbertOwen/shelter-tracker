@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">{{ $dog->exists ? 'Edit Dog' : 'Add Dog' }}</x-slot>
 
-    <form method="POST" action="{{ $dog->exists ? route('admin.dogs.update', $dog) : route('admin.dogs.store') }}" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+    <form method="POST" action="{{ $dog->exists ? route('admin.dogs.update', $dog) : route('admin.dogs.store') }}" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]" x-data="{ photoPreview: @js($dog->image_url) }">
         @csrf
         @if ($dog->exists)
             @method('PUT')
@@ -73,12 +73,22 @@
                     <input type="number" step="1000" name="adoption_fee" value="{{ old('adoption_fee', $dog->adoption_fee ?? 0) }}" class="shelter-input">
                 </label>
                 <label class="text-sm font-semibold text-[#5b4638]">Photo
-                    <input type="file" name="photo" accept="image/*" class="shelter-input">
+                    <input type="file" name="photo" accept="image/*" class="shelter-input" @change="const file = $event.target.files[0]; photoPreview = file ? URL.createObjectURL(file) : @js($dog->image_url)">
                 </label>
             </div>
         </section>
 
         <section class="space-y-6">
+            <div class="shelter-card p-6">
+                <h3 class="text-xl font-black">Photo preview</h3>
+                <div class="mt-4 h-64 overflow-hidden rounded-[8px] bg-[#eaded0]">
+                    <template x-if="photoPreview">
+                        <img :src="photoPreview" alt="Dog photo preview" class="h-full w-full object-cover">
+                    </template>
+                    <div x-show="! photoPreview" class="grid h-full place-items-center text-sm font-semibold text-[#7f6a58]">No photo selected</div>
+                </div>
+            </div>
+
             <div class="shelter-card p-6">
                 <h3 class="text-xl font-black">Adoption story</h3>
                 <label class="mt-4 block text-sm font-semibold text-[#5b4638]">Story

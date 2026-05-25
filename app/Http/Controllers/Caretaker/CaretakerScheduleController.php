@@ -13,6 +13,10 @@ class CaretakerScheduleController extends Controller
 {
     public function index(Request $request): View
     {
+        $selectedDate = $request->date('date') ?? today();
+        $monthStart = $selectedDate->copy()->startOfMonth();
+        $monthEnd = $selectedDate->copy()->endOfMonth();
+
         Schedule::where('assigned_to', $request->user()->id)
             ->where('status', 'pending')
             ->where('start_time', '<', now())
@@ -21,10 +25,16 @@ class CaretakerScheduleController extends Controller
         return view('caretaker.schedules.index', [
             'schedules' => Schedule::with('dog')
                 ->where('assigned_to', $request->user()->id)
-                ->whereDate('start_time', $request->date('date') ?? today())
+                ->whereDate('start_time', $selectedDate)
                 ->orderBy('start_time')
                 ->get(),
-            'selectedDate' => $request->date('date') ?? today(),
+            'selectedDate' => $selectedDate,
+            'monthStart' => $monthStart,
+            'taskDates' => Schedule::where('assigned_to', $request->user()->id)
+                ->whereBetween('start_time', [$monthStart, $monthEnd])
+                ->selectRaw('DATE(start_time) as task_date, COUNT(*) as total')
+                ->groupBy('task_date')
+                ->pluck('total', 'task_date'),
         ]);
     }
 

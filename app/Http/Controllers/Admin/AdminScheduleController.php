@@ -15,6 +15,10 @@ class AdminScheduleController extends Controller
 {
     public function index(Request $request): View
     {
+        $selectedDate = $request->date('date') ?? today();
+        $monthStart = $selectedDate->copy()->startOfMonth();
+        $monthEnd = $selectedDate->copy()->endOfMonth();
+
         $schedules = Schedule::with(['dog', 'assignee'])
             ->whereHas('dog', fn ($query) => $query->where('shelter_id', $request->user()->shelter_id))
             ->when($request->filled('status'), fn ($query) => $query->where('status', $request->input('status')))
@@ -28,6 +32,13 @@ class AdminScheduleController extends Controller
             'todayCount' => Schedule::whereHas('dog', fn ($query) => $query->where('shelter_id', $request->user()->shelter_id))
                 ->whereDate('start_time', today())
                 ->count(),
+            'selectedDate' => $selectedDate,
+            'monthStart' => $monthStart,
+            'taskDates' => Schedule::whereHas('dog', fn ($query) => $query->where('shelter_id', $request->user()->shelter_id))
+                ->whereBetween('start_time', [$monthStart, $monthEnd])
+                ->selectRaw('DATE(start_time) as task_date, COUNT(*) as total')
+                ->groupBy('task_date')
+                ->pluck('total', 'task_date'),
         ]);
     }
 

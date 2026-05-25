@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="title">Log Health</x-slot>
 
-    <form method="POST" action="{{ route('caretaker.health-records.store') }}" enctype="multipart/form-data" class="mx-auto max-w-4xl shelter-card p-6">
+    <form method="POST" action="{{ route('caretaker.health-records.store') }}" enctype="multipart/form-data" class="mx-auto max-w-4xl shelter-card p-6" x-data="{ preview: null }">
         @csrf
         <p class="text-sm font-semibold uppercase tracking-[0.16em] text-[#9a8069]">Health record</p>
         <h2 class="mt-2 text-2xl font-black">New observation</h2>
@@ -25,8 +25,12 @@
                 <input type="datetime-local" name="recorded_at" value="{{ old('recorded_at', now()->format('Y-m-d\TH:i')) }}" class="shelter-input" required>
             </label>
             <label class="text-sm font-semibold text-[#5b4638]">Photo
-                <input type="file" name="photo" accept="image/*" class="shelter-input">
+                <input type="file" name="photo" accept="image/*" class="shelter-input" @change="const file = $event.target.files[0]; preview = file ? URL.createObjectURL(file) : null">
             </label>
+            <div class="sm:col-span-2" x-show="preview" x-cloak>
+                <p class="text-sm font-semibold text-[#5b4638]">Photo preview</p>
+                <img :src="preview" alt="Health record preview" class="mt-2 h-56 w-full rounded-[8px] object-cover">
+            </div>
             <label class="sm:col-span-2 text-sm font-semibold text-[#5b4638]">Observation
                 <textarea name="observation" rows="4" class="shelter-input" required>{{ old('observation') }}</textarea>
             </label>

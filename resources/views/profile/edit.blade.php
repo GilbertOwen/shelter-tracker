@@ -26,6 +26,35 @@
 
         <section class="space-y-5">
             <div class="shelter-card p-6">
+                <h3 class="text-xl font-black">Password</h3>
+                @if (session('status') === 'password-updated')
+                    <p class="mt-3 rounded-[8px] bg-[#eef5ed] px-3 py-2 text-sm font-semibold text-[#5d7460]">Password updated.</p>
+                @endif
+                <form method="POST" action="{{ route('password.update') }}" class="mt-4 grid gap-4 sm:grid-cols-3">
+                    @csrf
+                    @method('PUT')
+                    <label class="text-sm font-semibold text-[#5b4638]">Current password
+                        <input name="current_password" type="password" autocomplete="current-password" class="shelter-input">
+                        @error('current_password', 'updatePassword')
+                            <span class="mt-1 block text-xs font-semibold text-red-700">{{ $message }}</span>
+                        @enderror
+                    </label>
+                    <label class="text-sm font-semibold text-[#5b4638]">New password
+                        <input name="password" type="password" autocomplete="new-password" class="shelter-input">
+                        @error('password', 'updatePassword')
+                            <span class="mt-1 block text-xs font-semibold text-red-700">{{ $message }}</span>
+                        @enderror
+                    </label>
+                    <label class="text-sm font-semibold text-[#5b4638]">Confirm password
+                        <input name="password_confirmation" type="password" autocomplete="new-password" class="shelter-input">
+                    </label>
+                    <div class="sm:col-span-3">
+                        <button class="shelter-button">Update Password</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="shelter-card p-6">
                 <h3 class="text-xl font-black">Account summary</h3>
                 <div class="mt-4 grid gap-3 sm:grid-cols-3">
                     <div class="rounded-[8px] bg-[#fbf6ef] p-4">

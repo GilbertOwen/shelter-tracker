@@ -15,16 +15,17 @@ ShelterTrack adalah aplikasi Laravel untuk manajemen dog shelter. MVP ini memaka
 - Phase 8: caretaker user management dan profile dasar.
 - Phase 9: visual baseline mengikuti referensi `UI_UX Sesi 10 - 11.zip` untuk sidebar, dashboard, my pets, schedule, login, dan register.
 
-## Sisa 20% Untuk Teman
+## Polish Yang Sudah Ditutup
 
-Bagian ini sengaja paling cocok dikerjakan manual supaya teman tetap punya kontribusi jelas:
+Bagian yang sebelumnya disisakan sekarang sudah ikut dibereskan:
 
-- Polish UI pixel-level dari ZIP: jarak, icon asli, ilustrasi, state hover, dan notification pop-up.
-- Upload preview gambar sebelum submit di dog, health record, dan activity log.
-- Calendar UX lebih lengkap: prev/next month, today shortcut, dan highlight task per tanggal.
-- Empty state visual yang lebih halus untuk dogs, schedules, contact trace, dan caretaker workload.
-- Tambahan validasi kecil: blok deactivate admin sendiri, konfirmasi delete lebih rapi, dan audit copy final.
-- Demo script/presentasi: urutan klik public browse, admin assign, caretaker log, admin trace.
+- Notification pop-up di topbar untuk urgent health dan schedule pending hari ini.
+- Upload preview gambar di dog form, health record form, dan schedule completion.
+- Calendar UX dengan prev/next month, Today shortcut, klik tanggal, dan marker tanggal yang punya task.
+- Password update dikembalikan ke halaman profile custom.
+- Test tambahan untuk dog CRUD + photo, schedule completion + activity log, health/contact trace, dan caretaker dashboard.
+
+Sisa yang sifatnya opsional presentasi: mengganti placeholder icon dengan asset final dari desain, menambah ilustrasi empty state custom, dan merapikan copy mikro bila dosen/pengguna meminta istilah tertentu.
 
 ## Setup Lokal
 
@@ -89,10 +90,14 @@ Test yang sudah tersedia:
 - Adopter registration tidak membuat shelter.
 - Public adoption hanya menampilkan dog active dan available.
 - Caretaker tidak bisa melihat dog di luar assignment.
+- Caretaker dashboard aman dari ambiguous column saat join assignment.
 - Reassign caretaker menutup assignment lama dan membuat assignment aktif baru.
+- Admin create dog dengan photo upload dan initial caretaker assignment.
+- Caretaker complete schedule membuat activity log dengan optional photo.
+- Health record, contact log, dan admin contact trace terhubung.
 
 ```bash
 php artisan test
 ```
 
-Hasil terakhir: `32 passed`.
+Hasil terakhir: `36 passed`.

@@ -10,6 +10,50 @@
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="shelter-paw-bg font-sans antialiased text-[#3f3027]">
+    @php
+        $layoutUser = auth()->user();
+        $notificationItems = collect();
+
+        if ($layoutUser?->shelter_id) {
+            $urgentRecords = \App\Models\HealthRecord::with('dog')
+                ->whereHas('dog', fn ($query) => $query->where('shelter_id', $layoutUser->shelter_id)->active())
+                ->where('severity', 'urgent')
+                ->latest('recorded_at')
+                ->take(3)
+                ->get();
+
+            foreach ($urgentRecords as $record) {
+                $notificationItems->push([
+                    'title' => 'Urgent health: '.$record->dog->name,
+                    'body' => Str::limit($record->observation, 82),
+                    'tone' => 'urgent',
+                ]);
+            }
+
+            if ($layoutUser->isCaretaker()) {
+                $scheduleCount = \App\Models\Schedule::where('assigned_to', $layoutUser->id)
+                    ->whereDate('start_time', today())
+                    ->whereIn('status', ['pending', 'overdue'])
+                    ->count();
+            } elseif ($layoutUser->isAdmin()) {
+                $scheduleCount = \App\Models\Schedule::whereHas('dog', fn ($query) => $query->where('shelter_id', $layoutUser->shelter_id))
+                    ->whereDate('start_time', today())
+                    ->whereIn('status', ['pending', 'overdue'])
+                    ->count();
+            } else {
+                $scheduleCount = 0;
+            }
+
+            if ($scheduleCount > 0) {
+                $notificationItems->push([
+                    'title' => $scheduleCount.' schedule pending today',
+                    'body' => 'Open Schedule to review daily care tasks.',
+                    'tone' => 'schedule',
+                ]);
+            }
+        }
+    @endphp
+
     <div class="min-h-screen lg:flex">
         <aside class="fixed inset-y-0 left-0 z-40 hidden w-72 bg-[#5b4638] text-white lg:flex lg:flex-col">
             @include('layouts.navigation')
@@ -24,6 +68,30 @@
                     </div>
                     <div class="flex items-center gap-3">
                         <a href="{{ route('adopt.index') }}" class="hidden rounded-[8px] border border-white/15 px-3 py-2 text-sm font-semibold text-white/90 hover:bg-white/10 sm:inline-flex">Adopt</a>
+                        <div x-data="{ open: false }" class="relative">
+                            <button type="button" @click="open = ! open" @keydown.escape.window="open = false" class="relative grid h-11 w-11 place-items-center rounded-[8px] border border-white/15 bg-white/10 text-sm font-black text-white hover:bg-white/20" title="Notifications">
+                                !
+                                @if ($notificationItems->isNotEmpty())
+                                    <span class="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[11px] font-black text-white">{{ $notificationItems->count() }}</span>
+                                @endif
+                            </button>
+                            <div x-cloak x-show="open" x-transition @click.outside="open = false" class="absolute right-0 mt-3 w-80 rounded-[8px] border border-[#eaded0] bg-white p-4 text-[#3f3027] shadow-xl">
+                                <div class="flex items-center justify-between">
+                                    <p class="font-black">Notifications</p>
+                                    <button type="button" @click="open = false" class="text-sm font-semibold text-[#7f6a58]">Close</button>
+                                </div>
+                                <div class="mt-4 space-y-3">
+                                    @forelse ($notificationItems as $item)
+                                        <div class="rounded-[8px] p-3 {{ $item['tone'] === 'urgent' ? 'bg-red-50 text-red-800' : 'bg-[#fbf6ef]' }}">
+                                            <p class="text-sm font-black">{{ $item['title'] }}</p>
+                                            <p class="mt-1 text-xs leading-5">{{ $item['body'] }}</p>
+                                        </div>
+                                    @empty
+                                        <p class="rounded-[8px] bg-[#eef5ed] p-3 text-sm font-semibold text-[#5d7460]">No urgent notification right now.</p>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
                         <div class="grid h-11 w-11 place-items-center rounded-full bg-[#f3e6d8] text-sm font-bold text-[#5b4638]">
                             {{ Str::of(auth()->user()->name)->explode(' ')->map(fn ($part) => Str::substr($part, 0, 1))->take(2)->implode('') }}
                         </div>

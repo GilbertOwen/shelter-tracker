@@ -49,15 +49,39 @@
         </section>
 
         <aside class="shelter-card p-5">
-            <p class="text-sm font-semibold uppercase tracking-[0.16em] text-[#9a8069]">Today</p>
-            <p class="mt-2 text-5xl font-black">{{ $todayCount }}</p>
-            <p class="mt-2 text-sm text-[#7f6a58]">tasks scheduled for {{ now()->format('M d, Y') }}</p>
+            @php
+                $prevMonth = $selectedDate->copy()->subMonth()->startOfMonth()->format('Y-m-d');
+                $nextMonth = $selectedDate->copy()->addMonth()->startOfMonth()->format('Y-m-d');
+                $dayOffset = $monthStart->dayOfWeek;
+            @endphp
+            <div class="flex items-center justify-between gap-2">
+                <a href="{{ route('admin.schedules.index', array_merge(request()->except('page'), ['date' => $prevMonth])) }}" class="grid h-9 w-9 place-items-center rounded-[8px] border border-[#d6c8bb] bg-white font-black text-[#6f5543]">&lt;</a>
+                <div class="text-center">
+                    <p class="text-sm font-semibold uppercase tracking-[0.16em] text-[#9a8069]">{{ $selectedDate->format('F Y') }}</p>
+                    <p class="text-xs text-[#7f6a58]">{{ $todayCount }} tasks today</p>
+                </div>
+                <a href="{{ route('admin.schedules.index', array_merge(request()->except('page'), ['date' => $nextMonth])) }}" class="grid h-9 w-9 place-items-center rounded-[8px] border border-[#d6c8bb] bg-white font-black text-[#6f5543]">&gt;</a>
+            </div>
+            <a href="{{ route('admin.schedules.index', array_merge(request()->except('page'), ['date' => today()->format('Y-m-d')])) }}" class="shelter-button-secondary mt-4 w-full">Today</a>
             <div class="mt-6 grid grid-cols-7 gap-1 text-center text-xs font-semibold text-[#7f6a58]">
                 @foreach (['S', 'M', 'T', 'W', 'T', 'F', 'S'] as $day)
                     <span>{{ $day }}</span>
                 @endforeach
-                @for ($i = 1; $i <= now()->daysInMonth; $i++)
-                    <span class="rounded-[8px] py-2 {{ $i === (int) now()->format('d') ? 'bg-[#6f5543] text-white' : 'bg-[#fbf6ef]' }}">{{ $i }}</span>
+                @for ($i = 0; $i < $dayOffset; $i++)
+                    <span></span>
+                @endfor
+                @for ($i = 1; $i <= $selectedDate->daysInMonth; $i++)
+                    @php
+                        $date = $monthStart->copy()->day($i);
+                        $dateKey = $date->format('Y-m-d');
+                        $hasTask = $taskDates->has($dateKey);
+                    @endphp
+                    <a href="{{ route('admin.schedules.index', array_merge(request()->except('page'), ['date' => $dateKey])) }}" class="relative rounded-[8px] py-2 {{ $dateKey === $selectedDate->format('Y-m-d') ? 'bg-[#6f5543] text-white' : 'bg-[#fbf6ef] hover:bg-[#f0e4d6]' }}">
+                        {{ $i }}
+                        @if ($hasTask)
+                            <span class="absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full {{ $dateKey === $selectedDate->format('Y-m-d') ? 'bg-white' : 'bg-[#6f5543]' }}"></span>
+                        @endif
+                    </a>
                 @endfor
             </div>
         </aside>
