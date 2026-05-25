@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Dog extends Model
 {
@@ -92,6 +94,34 @@ class Dog extends Model
     public function scopeAvailableForAdoption($query)
     {
         return $query->active()->where('adoption_status', 'available');
+    }
+
+    public function getAgeLabelAttribute(): string
+    {
+        if (! $this->birth_date) {
+            return 'Age unknown';
+        }
+
+        $months = (int) $this->birth_date->diffInMonths(now());
+
+        if ($months < 12) {
+            return max($months, 1).' mo';
+        }
+
+        return floor($months / 12).' yr';
+    }
+
+    public function getImageUrlAttribute(): ?string
+    {
+        if (! $this->photo_url) {
+            return null;
+        }
+
+        if (Str::startsWith($this->photo_url, ['http://', 'https://'])) {
+            return $this->photo_url;
+        }
+
+        return Storage::url($this->photo_url);
     }
 
     public function hasUrgentHealthRecord(): bool

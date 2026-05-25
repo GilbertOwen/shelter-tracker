@@ -1,3 +1,36 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    [x-cloak] {
+        display: none !important;
+    }
+}
+
+@layer components {
+    .shelter-paw-bg {
+        background-color: #f7f1e8;
+        background-image:
+            radial-gradient(circle at 18px 22px, rgba(108, 86, 68, 0.07) 0 4px, transparent 5px),
+            radial-gradient(circle at 30px 15px, rgba(108, 86, 68, 0.055) 0 3px, transparent 4px),
+            radial-gradient(circle at 38px 26px, rgba(108, 86, 68, 0.05) 0 3px, transparent 4px);
+        background-size: 96px 96px;
+    }
+
+    .shelter-card {
+        @apply rounded-[8px] border border-[#eaded0] bg-white/95 shadow-sm;
+    }
+
+    .shelter-input {
+        @apply mt-1 w-full rounded-[8px] border-[#d8cabc] bg-white px-3 py-2 text-sm text-[#49382d] shadow-sm focus:border-[#7b5f49] focus:ring-[#7b5f49];
+    }
+
+    .shelter-button {
+        @apply inline-flex items-center justify-center rounded-[8px] bg-[#6f5543] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#584335] focus:outline-none focus:ring-2 focus:ring-[#6f5543] focus:ring-offset-2;
+    }
+
+    .shelter-button-secondary {
+        @apply inline-flex items-center justify-center rounded-[8px] border border-[#d6c8bb] bg-white px-4 py-2 text-sm font-semibold text-[#604b3c] shadow-sm transition hover:bg-[#f5ede4];
+    }
+}

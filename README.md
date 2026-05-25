@@ -1,19 +1,30 @@
 # ShelterTrack
 
-ShelterTrack adalah aplikasi Laravel untuk manajemen dog shelter. Project ini sedang dikerjakan per phase supaya mudah dibagi tugas dan tidak saling tabrakan.
+ShelterTrack adalah aplikasi Laravel untuk manajemen dog shelter. MVP ini memakai Laravel 11, Breeze Blade, Tailwind CSS, Alpine.js, Spatie Permission, MySQL Laragon, dan upload local storage.
 
-## Status Phase
+## Status Implementasi
 
-- Phase 0: Laravel 11, Breeze Blade, Tailwind/Vite, Spatie Permission, auth baseline.
-- Phase 1: data foundation untuk ShelterTrack.
-- Phase 2+ belum dikerjakan di branch `main`.
+- Phase 0: Laravel 11, Breeze Blade, Tailwind/Vite, Spatie Permission, auth baseline, storage link.
+- Phase 1: data foundation, migration, model relationship, roles, dan seed demo.
+- Phase 2: register Admin Shelter dan Adopter, caretaker hanya dibuat Admin, route group role-aware.
+- Phase 3: public adoption page `/`, `/adopt`, `/adopt/{dog}` dengan filter dan detail public-safe.
+- Phase 4: dashboard role-aware untuk Admin, Caretaker, dan Adopter.
+- Phase 5: Admin dog CRUD, photo upload, archive via `is_active`, primary caretaker assignment history.
+- Phase 6: schedule CRUD Admin, caretaker schedule, mark complete, activity log.
+- Phase 7: caretaker health record, contact log, urgent alert, admin contact trace.
+- Phase 8: caretaker user management dan profile dasar.
+- Phase 9: visual baseline mengikuti referensi `UI_UX Sesi 10 - 11.zip` untuk sidebar, dashboard, my pets, schedule, login, dan register.
 
-## Phase 1 Yang Sudah Ada
+## Sisa 20% Untuk Teman
 
-- Tables: `shelters`, `users`, `dogs`, `caretaker_assignments`, `schedules`, `health_records`, `contact_logs`, `activity_logs`.
-- Models dan relationships: `Shelter`, `Dog`, `CaretakerAssignment`, `Schedule`, `HealthRecord`, `ContactLog`, `ActivityLog`, dan update `User`.
-- Seeder demo: roles, 1 shelter, 6 users, 12 dogs, assignments, schedules, health records, contact logs, activity logs.
-- Tests: `ShelterTrackDataFoundationTest` untuk validasi seed count dan relasi utama.
+Bagian ini sengaja paling cocok dikerjakan manual supaya teman tetap punya kontribusi jelas:
+
+- Polish UI pixel-level dari ZIP: jarak, icon asli, ilustrasi, state hover, dan notification pop-up.
+- Upload preview gambar sebelum submit di dog, health record, dan activity log.
+- Calendar UX lebih lengkap: prev/next month, today shortcut, dan highlight task per tanggal.
+- Empty state visual yang lebih halus untuk dogs, schedules, contact trace, dan caretaker workload.
+- Tambahan validasi kecil: blok deactivate admin sendiri, konfirmasi delete lebih rapi, dan audit copy final.
+- Demo script/presentasi: urutan klik public browse, admin assign, caretaker log, admin trace.
 
 ## Setup Lokal
 
@@ -39,8 +50,15 @@ Lalu jalankan:
 
 ```bash
 php artisan migrate:fresh --seed
+php artisan storage:link
 npm run build
 php artisan test
+```
+
+Untuk membuka aplikasi:
+
+```bash
+php artisan serve
 ```
 
 ## Akun Demo
@@ -54,19 +72,27 @@ Semua akun seed memakai password `password`.
 - `maya@shelter.com` sebagai Caretaker
 - `adopter@example.com` sebagai Adopter
 
-## Pembagian Tugas 2 Orang
+## Route Utama
 
-Supaya masih ada sekitar 30% pekerjaan untuk dikerjakan manual/teman:
+- Public: `/`, `/adopt`, `/adopt/{dog}`
+- Authenticated: `/dashboard`, `/profile`
+- Admin: `/admin/dogs`, `/admin/users`, `/admin/schedules`, `/admin/contact-trace`
+- Caretaker: `/caretaker/dogs`, `/caretaker/schedules`, `/caretaker/health-records/create`, `/caretaker/contact-log`
 
-- Orang A: Phase 2 auth role flow, register Admin Shelter/Adopter, middleware redirect, dashboard role-aware.
-- Orang B: Public adoption page dan caretaker workflows.
-- Codex/helper: fondasi data, tests, dan bugfix kecil saja sampai diminta lanjut.
+## Test Coverage
 
-File rawan konflik:
+Test yang sudah tersedia:
 
-- `routes/web.php`
-- `resources/views/layouts/navigation.blade.php`
-- `app/Models/User.php`
-- `database/migrations/*`
+- Breeze auth/profile baseline.
+- Phase 1 data foundation dan relationship.
+- Admin registration membuat shelter.
+- Adopter registration tidak membuat shelter.
+- Public adoption hanya menampilkan dog active dan available.
+- Caretaker tidak bisa melihat dog di luar assignment.
+- Reassign caretaker menutup assignment lama dan membuat assignment aktif baru.
 
-Kerja idealnya pakai branch fitur, misalnya `feature/auth-roles` dan `feature/public-caretaker`.
+```bash
+php artisan test
+```
+
+Hasil terakhir: `32 passed`.

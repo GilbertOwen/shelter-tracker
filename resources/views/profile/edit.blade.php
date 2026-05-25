@@ -1,43 +1,88 @@
 <x-app-layout>
-    <div class="grid gap-6 lg:grid-cols-[0.8fr_1.2fr]">
-        <div class="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
-            <h1 class="text-2xl font-bold">Profile</h1>
-            <p class="mt-1 text-sm text-slate-500">{{ Str::headline($user->role) }} account</p>
+    <x-slot name="title">Profile</x-slot>
+
+    <div class="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+        <section class="shelter-card p-6">
+            <p class="text-sm font-semibold uppercase tracking-[0.16em] text-[#9a8069]">{{ Str::headline($user->role) }} account</p>
+            <h2 class="mt-2 text-3xl font-black">Profile</h2>
+
             <form method="POST" action="{{ route('profile.update') }}" class="mt-6 space-y-4">
-                @csrf @method('PATCH')
-                <label class="block text-sm font-medium">Name
-                    <input name="name" value="{{ old('name', $user->name) }}" required class="mt-1 w-full rounded-md border-slate-300">
+                @csrf
+                @method('PATCH')
+
+                <label class="block text-sm font-semibold text-[#5b4638]">Name
+                    <input name="name" value="{{ old('name', $user->name) }}" required class="shelter-input">
                 </label>
-                <label class="block text-sm font-medium">Email
-                    <input name="email" type="email" value="{{ old('email', $user->email) }}" required class="mt-1 w-full rounded-md border-slate-300">
+                <label class="block text-sm font-semibold text-[#5b4638]">Email
+                    <input name="email" type="email" value="{{ old('email', $user->email) }}" required class="shelter-input">
                 </label>
-                <label class="block text-sm font-medium">Phone
-                    <input name="phone" value="{{ old('phone', $user->phone) }}" class="mt-1 w-full rounded-md border-slate-300">
+                <label class="block text-sm font-semibold text-[#5b4638]">Phone
+                    <input name="phone" value="{{ old('phone', $user->phone) }}" class="shelter-input">
                 </label>
-                <button class="rounded-md bg-emerald-700 px-4 py-2 text-sm font-semibold text-white">Save Profile</button>
+
+                <button class="shelter-button w-full">Save Profile</button>
             </form>
-        </div>
-        <div class="space-y-4">
-            @if ($user->isCaretaker())
-                <div class="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
-                    <h2 class="font-semibold">Assigned dogs</h2>
-                    <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                        @foreach ($user->assignedDogs as $dog)
-                            <div class="rounded-md border border-slate-100 p-3"><p class="font-semibold">{{ $dog->name }}</p><p class="text-sm text-slate-500">Kennel {{ $dog->kennel }}</p></div>
-                        @endforeach
+        </section>
+
+        <section class="space-y-5">
+            <div class="shelter-card p-6">
+                <h3 class="text-xl font-black">Account summary</h3>
+                <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                    <div class="rounded-[8px] bg-[#fbf6ef] p-4">
+                        <p class="text-sm text-[#7f6a58]">Role</p>
+                        <p class="font-black">{{ Str::headline($user->role) }}</p>
+                    </div>
+                    <div class="rounded-[8px] bg-[#fbf6ef] p-4">
+                        <p class="text-sm text-[#7f6a58]">Status</p>
+                        <p class="font-black">{{ $user->is_active ? 'Active' : 'Inactive' }}</p>
+                    </div>
+                    <div class="rounded-[8px] bg-[#fbf6ef] p-4">
+                        <p class="text-sm text-[#7f6a58]">Shelter</p>
+                        <p class="font-black">{{ $user->shelter?->name ?? 'Public' }}</p>
                     </div>
                 </div>
-                <div class="rounded-md border border-slate-200 bg-white p-6 shadow-sm">
-                    <h2 class="font-semibold">Recent contact</h2>
-                    <div class="mt-3 divide-y divide-slate-100">
-                        @foreach ($user->contactLogs->take(5) as $log)
-                            <div class="py-2 text-sm">{{ $log->dog->name }} · {{ Str::headline($log->contact_type) }} · {{ $log->logged_at->format('M d') }}</div>
-                        @endforeach
+            </div>
+
+            @if ($user->isCaretaker())
+                <div class="shelter-card p-6">
+                    <h3 class="text-xl font-black">Assigned dogs</h3>
+                    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                        @forelse ($user->assignedDogs as $dog)
+                            <a href="{{ route('caretaker.dogs.show', $dog) }}" class="rounded-[8px] bg-[#fbf6ef] p-4">
+                                <p class="font-black">{{ $dog->name }}</p>
+                                <p class="text-sm text-[#7f6a58]">Kennel {{ $dog->kennel }}</p>
+                            </a>
+                        @empty
+                            <p class="text-sm text-[#7f6a58]">No active assignment.</p>
+                        @endforelse
                     </div>
+                </div>
+
+                <div class="shelter-card p-6">
+                    <h3 class="text-xl font-black">Recent contact</h3>
+                    <div class="mt-4 divide-y divide-[#eaded0]">
+                        @forelse ($user->contactLogs()->with('dog')->latest('logged_at')->take(5)->get() as $log)
+                            <div class="py-3 text-sm">
+                                <span class="font-semibold">{{ $log->dog->name }}</span>
+                                <span class="text-[#7f6a58]"> - {{ Str::headline($log->contact_type) }} - {{ $log->logged_at->format('M d') }}</span>
+                            </div>
+                        @empty
+                            <p class="text-sm text-[#7f6a58]">No contact log yet.</p>
+                        @endforelse
+                    </div>
+                </div>
+            @elseif ($user->isAdopter())
+                <div class="shelter-card p-6">
+                    <h3 class="text-xl font-black">Adopter workspace</h3>
+                    <p class="mt-2 text-sm leading-6 text-[#7f6a58]">Favorite/history is intentionally outside MVP. Browse public adoption listings and contact shelters directly.</p>
+                    <a href="{{ route('adopt.index') }}" class="shelter-button mt-5">Browse Dogs</a>
                 </div>
             @else
-                <div class="rounded-md border border-slate-200 bg-white p-6 text-sm text-slate-600 shadow-sm">Use the navigation to manage your workspace or browse adoptable dogs.</div>
+                <div class="shelter-card p-6">
+                    <h3 class="text-xl font-black">Admin workspace</h3>
+                    <p class="mt-2 text-sm leading-6 text-[#7f6a58]">Manage dogs, caretakers, schedules, and contact trace from the sidebar.</p>
+                </div>
             @endif
-        </div>
+        </section>
     </div>
 </x-app-layout>

@@ -1,41 +1,53 @@
 @php
     $user = auth()->user();
-    $navClass = fn ($active) => $active
-        ? 'bg-slate-900 text-white'
-        : 'text-slate-600 hover:bg-white hover:text-slate-950';
+    $isMobile = $mobile ?? false;
+    $navClass = fn ($active) => $isMobile
+        ? ($active ? 'bg-white text-[#5b4638]' : 'bg-white/10 text-white hover:bg-white/20')
+        : ($active ? 'bg-[#f3e6d8] text-[#5b4638]' : 'text-[#efe2d3] hover:bg-white/10 hover:text-white');
+    $itemClass = $isMobile ? 'shrink-0 rounded-[8px] px-3 py-2 text-sm font-semibold' : 'flex items-center gap-3 rounded-[8px] px-4 py-3 text-sm font-semibold';
 @endphp
 
-<nav class="border-b border-slate-200 bg-stone-100/90 backdrop-blur">
-    <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+@if (! $isMobile)
+    <div class="flex h-full flex-col px-6 py-7">
         <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-            <span class="grid h-10 w-10 place-items-center rounded-md bg-emerald-700 text-sm font-bold text-white">ST</span>
+            <span class="grid h-12 w-12 place-items-center rounded-full bg-[#f3e6d8] text-base font-black text-[#5b4638]">ST</span>
             <span>
-                <span class="block text-sm font-bold tracking-wide text-slate-950">ShelterTrack</span>
-                <span class="block text-xs text-slate-500">{{ $user?->shelter?->name ?? ucfirst($user?->role ?? 'Public') }}</span>
+                <span class="block text-lg font-black tracking-wide text-white">ShelterTrack</span>
+                <span class="block text-xs font-medium text-[#cdb9a6]">{{ $user?->shelter?->name ?? Str::headline($user?->role ?? 'Public') }}</span>
             </span>
         </a>
+        <div class="mt-10 space-y-2">
+@endif
 
-        <div class="hidden items-center gap-2 md:flex">
-            @auth
-                <a class="rounded-md px-3 py-2 text-sm font-semibold {{ $navClass(request()->routeIs('dashboard')) }}" href="{{ route('dashboard') }}">Dashboard</a>
+@auth
+    <a class="{{ $itemClass }} {{ $navClass(request()->routeIs('dashboard')) }}" href="{{ route('dashboard') }}">
+        <span>Dashboard</span>
+    </a>
 
-                @if ($user->isAdmin())
-                    <a class="rounded-md px-3 py-2 text-sm font-semibold {{ $navClass(request()->routeIs('admin.dogs.*')) }}" href="{{ route('admin.dogs.index') }}">Dogs</a>
-                    <a class="rounded-md px-3 py-2 text-sm font-semibold {{ $navClass(request()->routeIs('admin.schedules.*')) }}" href="{{ route('admin.schedules.index') }}">Schedule</a>
-                    <a class="rounded-md px-3 py-2 text-sm font-semibold {{ $navClass(request()->routeIs('admin.users.*')) }}" href="{{ route('admin.users.index') }}">Users</a>
-                    <a class="rounded-md px-3 py-2 text-sm font-semibold {{ $navClass(request()->routeIs('admin.contact-trace')) }}" href="{{ route('admin.contact-trace') }}">Contact Trace</a>
-                @elseif ($user->isCaretaker())
-                    <a class="rounded-md px-3 py-2 text-sm font-semibold {{ $navClass(request()->routeIs('caretaker.dogs.*')) }}" href="{{ route('caretaker.dogs.index') }}">My Dogs</a>
-                    <a class="rounded-md px-3 py-2 text-sm font-semibold {{ $navClass(request()->routeIs('caretaker.schedules.*')) }}" href="{{ route('caretaker.schedules.index') }}">Schedule</a>
-                    <a class="rounded-md px-3 py-2 text-sm font-semibold {{ $navClass(request()->routeIs('caretaker.contact-log.*')) }}" href="{{ route('caretaker.contact-log.index') }}">Contact Log</a>
-                @endif
+    @if ($user->isAdmin())
+        <a class="{{ $itemClass }} {{ $navClass(request()->routeIs('admin.dogs.*')) }}" href="{{ route('admin.dogs.index') }}">My Pets</a>
+        <a class="{{ $itemClass }} {{ $navClass(request()->routeIs('admin.schedules.*')) }}" href="{{ route('admin.schedules.index') }}">Schedule</a>
+        <a class="{{ $itemClass }} {{ $navClass(request()->routeIs('admin.users.*')) }}" href="{{ route('admin.users.index') }}">Caretakers</a>
+        <a class="{{ $itemClass }} {{ $navClass(request()->routeIs('admin.contact-trace')) }}" href="{{ route('admin.contact-trace') }}">Contact Trace</a>
+    @elseif ($user->isCaretaker())
+        <a class="{{ $itemClass }} {{ $navClass(request()->routeIs('caretaker.dogs.*')) }}" href="{{ route('caretaker.dogs.index') }}">My Pets</a>
+        <a class="{{ $itemClass }} {{ $navClass(request()->routeIs('caretaker.schedules.*')) }}" href="{{ route('caretaker.schedules.index') }}">Schedule</a>
+        <a class="{{ $itemClass }} {{ $navClass(request()->routeIs('caretaker.health-records.*')) }}" href="{{ route('caretaker.health-records.create') }}">Health</a>
+        <a class="{{ $itemClass }} {{ $navClass(request()->routeIs('caretaker.contact-log.*')) }}" href="{{ route('caretaker.contact-log.index') }}">Contact Log</a>
+    @endif
 
-                <a class="rounded-md px-3 py-2 text-sm font-semibold {{ $navClass(request()->routeIs('profile.*')) }}" href="{{ route('profile.edit') }}">Profile</a>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button class="rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-white">Log out</button>
-                </form>
-            @endauth
+    <a class="{{ $itemClass }} {{ $navClass(request()->routeIs('profile.*')) }}" href="{{ route('profile.edit') }}">Profile</a>
+@endauth
+
+@if (! $isMobile)
+        </div>
+        <div class="mt-auto rounded-[8px] bg-white/10 p-4 text-sm text-[#f4e7d8]">
+            <p class="font-semibold text-white">{{ $user->name }}</p>
+            <p class="mt-1 text-xs">{{ $user->email }}</p>
+            <form method="POST" action="{{ route('logout') }}" class="mt-4">
+                @csrf
+                <button class="w-full rounded-[8px] border border-white/20 px-3 py-2 text-sm font-semibold text-white hover:bg-white/10">Log out</button>
+            </form>
         </div>
     </div>
-</nav>
+@endif
