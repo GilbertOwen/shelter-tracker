@@ -4,7 +4,6 @@
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <p class="text-sm font-semibold uppercase tracking-[0.16em] text-[#9a8069]">Care calendar</p>
-            <h2 class="text-3xl font-black">Schedule</h2>
         </div>
         <a href="{{ route('admin.schedules.create') }}" class="shelter-button">Add Schedule</a>
     </div>

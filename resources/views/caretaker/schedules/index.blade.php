@@ -4,7 +4,6 @@
     <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <p class="text-sm font-semibold uppercase tracking-[0.16em] text-[#9a8069]">Daily care</p>
-            <h2 class="text-3xl font-black">Schedule</h2>
         </div>
         <form method="GET" class="flex gap-2">
             <input type="date" name="date" value="{{ $selectedDate->format('Y-m-d') }}" class="shelter-input mt-0">

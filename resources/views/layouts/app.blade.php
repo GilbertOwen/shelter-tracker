@@ -60,7 +60,7 @@
         </aside>
 
         <div class="min-h-screen flex-1 lg:pl-72">
-            <header class="sticky top-0 z-30 bg-[#5b4638] text-white shadow-sm lg:rounded-bl-[28px]">
+            <header class="sticky top-0 z-30 bg-[#5b4638] text-white shadow-sm">
                 <div class="flex min-h-20 items-center justify-between gap-4 px-4 py-4 sm:px-8 lg:px-10">
                     <div>
                         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-[#d7c4b1]">{{ auth()->user()?->role === 'admin' ? 'Shelter Admin' : Str::headline(auth()->user()?->role ?? 'Workspace') }}</p>
