@@ -29,7 +29,7 @@
         <button class="shelter-button">Filter</button>
     </form>
 
-    <div class="mt-8 grid gap-x-5 gap-y-12 sm:grid-cols-2 xl:grid-cols-3">
+    <div class="mt-16 grid gap-x-5 gap-y-12 sm:grid-cols-2 xl:grid-cols-3">
         @forelse ($dogs as $dog)
             <article class="shelter-card relative pt-14">
                 <div class="absolute left-5 top-0 h-24 w-24 -translate-y-1/2 overflow-hidden rounded-full border-4 border-[#f7f1e8] bg-[#eaded0]">
