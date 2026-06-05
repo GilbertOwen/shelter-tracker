@@ -12,7 +12,23 @@
         </div>
     </div>
 
-    <form method="GET" class="mt-5 grid gap-3 md:grid-cols-[1fr_180px_160px_auto]">
+    <div class="mt-5 flex flex-wrap gap-2">
+        <a href="{{ route('admin.dogs.index', array_merge(request()->except('view', 'page'), ['view' => 'active'])) }}"
+           class="rounded-[8px] px-4 py-2 text-sm font-semibold {{ $view === 'active' ? 'bg-[#5b4638] text-white' : 'bg-white text-[#5b4638] border border-[#d6c8bb]' }}">
+            Active
+        </a>
+        <a href="{{ route('admin.dogs.index', array_merge(request()->except('view', 'page'), ['view' => 'archived'])) }}"
+           class="rounded-[8px] px-4 py-2 text-sm font-semibold {{ $view === 'archived' ? 'bg-[#5b4638] text-white' : 'bg-white text-[#5b4638] border border-[#d6c8bb]' }}">
+            Archived @if ($archivedCount > 0)<span class="ml-1 rounded-full bg-[#eee3d7] px-2 py-0.5 text-xs">{{ $archivedCount }}</span>@endif
+        </a>
+        <a href="{{ route('admin.dogs.index', array_merge(request()->except('view', 'page'), ['view' => 'all'])) }}"
+           class="rounded-[8px] px-4 py-2 text-sm font-semibold {{ $view === 'all' ? 'bg-[#5b4638] text-white' : 'bg-white text-[#5b4638] border border-[#d6c8bb]' }}">
+            All
+        </a>
+    </div>
+
+    <form method="GET" class="mt-4 grid gap-3 md:grid-cols-[1fr_180px_160px_auto]">
+        <input type="hidden" name="view" value="{{ $view }}">
         <input name="q" value="{{ request('q') }}" placeholder="Search name, breed, kennel" class="shelter-input mt-0">
         <select name="status" class="shelter-input mt-0">
             <option value="">All status</option>
@@ -71,10 +87,17 @@
 
                     <div class="mt-4 flex gap-2">
                         <a href="{{ route('admin.dogs.edit', $dog) }}" class="shelter-button-secondary flex-1">Edit</a>
-                        <form method="POST" action="{{ route('admin.dogs.destroy', $dog) }}" class="flex-1">
-                            @csrf @method('DELETE')
-                            <button class="shelter-button-secondary w-full" onclick="return confirm('Archive {{ $dog->name }}?')">Archive</button>
-                        </form>
+                        @if ($dog->is_active)
+                            <form method="POST" action="{{ route('admin.dogs.destroy', $dog) }}" class="flex-1" onsubmit="return confirm('Archive {{ $dog->name }}? Data tetap tersimpan untuk arsip.')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="shelter-button-secondary w-full">Archive</button>
+                            </form>
+                        @else
+                            <form method="POST" action="{{ route('admin.dogs.restore', $dog) }}" class="flex-1">
+                                @csrf
+                                <button type="submit" class="shelter-button w-full">Restore</button>
+                            </form>
+                        @endif
                     </div>
                 </div>
             </article>

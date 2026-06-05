@@ -15,8 +15,14 @@ class AdminDogController extends Controller
 {
     public function index(Request $request): View
     {
+        // Default: sembunyikan anjing yang sudah di-archive supaya admin tidak
+        // bingung "kok masih muncul setelah di-Archive". Bisa di-toggle dengan ?view=archived
+        $view = $request->input('view', 'active');
+
         $dogs = Dog::with(['activeAssignment.caretaker'])
             ->where('shelter_id', $request->user()->shelter_id)
+            ->when($view === 'archived', fn ($query) => $query->where('is_active', false))
+            ->when($view === 'active', fn ($query) => $query->where('is_active', true))
             ->when($request->filled('q'), fn ($query) => $query->where(fn ($inner) => $inner
                 ->where('name', 'like', '%'.$request->input('q').'%')
                 ->orWhere('breed', 'like', '%'.$request->input('q').'%')
@@ -27,10 +33,25 @@ class AdminDogController extends Controller
             ->paginate(12)
             ->withQueryString();
 
+        $archivedCount = Dog::where('shelter_id', $request->user()->shelter_id)
+            ->where('is_active', false)
+            ->count();
+
         return view('admin.dogs.index', [
             'dogs' => $dogs,
             'caretakers' => $this->caretakers($request),
+            'view' => $view,
+            'archivedCount' => $archivedCount,
         ]);
+    }
+
+    public function restore(Request $request, Dog $dog): RedirectResponse
+    {
+        $this->ensureShelterDog($request, $dog);
+
+        $dog->update(['is_active' => true]);
+
+        return back()->with('success', $dog->name.' telah diaktifkan kembali.');
     }
 
     public function create(Request $request): View

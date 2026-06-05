@@ -35,6 +35,7 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::resource('dogs', AdminDogController::class)->except(['show']);
         Route::post('/dogs/{dog}/assign', AssignCaretakerController::class)->name('dogs.assign');
+        Route::post('/dogs/{dog}/restore', [AdminDogController::class, 'restore'])->name('dogs.restore');
         Route::resource('users', AdminUserController::class)->except(['show', 'destroy']);
         Route::resource('schedules', AdminScheduleController::class)->except(['show']);
         Route::get('/contact-trace', [ContactTraceController::class, 'index'])->name('contact-trace');

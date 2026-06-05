@@ -31,8 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         // CSRF token expired (419) — arahkan ke halaman yang benar, bukan layar "Page Expired".
         $exceptions->render(function (TokenMismatchException $e, $request) {
-            // Jika ini percobaan logout, anggap user memang ingin keluar:
-            // bersihkan sesi lalu arahkan ke halaman publik.
+            // Logout: anggap user memang ingin keluar.
             if ($request->is('logout')) {
                 auth()->guard('web')->logout();
                 $request->session()->invalidate();
@@ -41,8 +40,15 @@ return Application::configure(basePath: dirname(__DIR__))
                 return redirect('/');
             }
 
+            // Masih login → balik ke halaman sebelumnya dengan pesan
+            // supaya user bisa coba ulang aksinya tanpa harus login lagi.
+            if (auth()->check()) {
+                return back()->with('error', 'Halaman sudah kedaluwarsa. Silakan coba lagi.');
+            }
+
+            // Tidak login → arahkan ke login.
             return redirect()
                 ->route('login')
-                ->with('error', 'Sesi Anda telah berakhir. Silakan coba lagi.');
+                ->with('error', 'Sesi Anda telah berakhir. Silakan login kembali.');
         });
     })->create();
