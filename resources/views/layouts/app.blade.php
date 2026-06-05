@@ -12,45 +12,58 @@
 <body class="shelter-paw-bg font-sans antialiased text-[#3f3027]">
     @php
         $layoutUser = auth()->user();
+
+        // Notifikasi (lonceng) di-cache 15 detik per user supaya tidak menjalankan
+        // query di SETIAP navigasi halaman. Dashboard tetap query fresh sendiri.
         $notificationItems = collect();
 
         if ($layoutUser?->shelter_id) {
-            $urgentRecords = \App\Models\HealthRecord::with('dog')
-                ->whereHas('dog', fn ($query) => $query->where('shelter_id', $layoutUser->shelter_id)->active())
-                ->where('severity', 'urgent')
-                ->latest('recorded_at')
-                ->take(3)
-                ->get();
+            $notificationItems = collect(\Illuminate\Support\Facades\Cache::remember(
+                'notif.'.$layoutUser->id,
+                now()->addSeconds(15),
+                function () use ($layoutUser) {
+                    $items = [];
 
-            foreach ($urgentRecords as $record) {
-                $notificationItems->push([
-                    'title' => 'Urgent health: '.$record->dog->name,
-                    'body' => Str::limit($record->observation, 82),
-                    'tone' => 'urgent',
-                ]);
-            }
+                    $urgentRecords = \App\Models\HealthRecord::with('dog:id,name')
+                        ->whereHas('dog', fn ($query) => $query->where('shelter_id', $layoutUser->shelter_id)->active())
+                        ->where('severity', 'urgent')
+                        ->latest('recorded_at')
+                        ->take(3)
+                        ->get();
 
-            if ($layoutUser->isCaretaker()) {
-                $scheduleCount = \App\Models\Schedule::where('assigned_to', $layoutUser->id)
-                    ->whereDate('start_time', today())
-                    ->whereIn('status', ['pending', 'overdue'])
-                    ->count();
-            } elseif ($layoutUser->isAdmin()) {
-                $scheduleCount = \App\Models\Schedule::whereHas('dog', fn ($query) => $query->where('shelter_id', $layoutUser->shelter_id))
-                    ->whereDate('start_time', today())
-                    ->whereIn('status', ['pending', 'overdue'])
-                    ->count();
-            } else {
-                $scheduleCount = 0;
-            }
+                    foreach ($urgentRecords as $record) {
+                        $items[] = [
+                            'title' => 'Urgent health: '.$record->dog->name,
+                            'body' => Str::limit($record->observation, 82),
+                            'tone' => 'urgent',
+                        ];
+                    }
 
-            if ($scheduleCount > 0) {
-                $notificationItems->push([
-                    'title' => $scheduleCount.' schedule pending today',
-                    'body' => 'Open Schedule to review daily care tasks.',
-                    'tone' => 'schedule',
-                ]);
-            }
+                    $scheduleQuery = \App\Models\Schedule::query()
+                        ->whereDate('start_time', today())
+                        ->whereIn('status', ['pending', 'overdue']);
+
+                    if ($layoutUser->isCaretaker()) {
+                        $scheduleCount = $scheduleQuery->where('assigned_to', $layoutUser->id)->count();
+                    } elseif ($layoutUser->isAdmin()) {
+                        $scheduleCount = $scheduleQuery
+                            ->whereHas('dog', fn ($query) => $query->where('shelter_id', $layoutUser->shelter_id))
+                            ->count();
+                    } else {
+                        $scheduleCount = 0;
+                    }
+
+                    if ($scheduleCount > 0) {
+                        $items[] = [
+                            'title' => $scheduleCount.' schedule pending today',
+                            'body' => 'Open Schedule to review daily care tasks.',
+                            'tone' => 'schedule',
+                        ];
+                    }
+
+                    return $items;
+                }
+            ));
         }
     @endphp
 
@@ -92,8 +105,21 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="grid h-11 w-11 place-items-center rounded-full bg-[#f3e6d8] text-sm font-bold text-[#5b4638]">
-                            {{ Str::of(auth()->user()->name)->explode(' ')->map(fn ($part) => Str::substr($part, 0, 1))->take(2)->implode('') }}
+                        <div x-data="{ open: false }" class="relative">
+                            <button type="button" @click="open = ! open" @keydown.escape.window="open = false" class="grid h-11 w-11 place-items-center rounded-full bg-[#f3e6d8] text-sm font-bold text-[#5b4638] hover:ring-2 hover:ring-white/40" title="Account">
+                                {{ Str::of(auth()->user()->name)->explode(' ')->map(fn ($part) => Str::substr($part, 0, 1))->take(2)->implode('') }}
+                            </button>
+                            <div x-cloak x-show="open" x-transition @click.outside="open = false" class="absolute right-0 mt-3 w-56 rounded-[8px] border border-[#eaded0] bg-white p-2 text-[#3f3027] shadow-xl">
+                                <div class="border-b border-[#f1e7db] px-3 py-2">
+                                    <p class="text-sm font-black leading-tight">{{ auth()->user()->name }}</p>
+                                    <p class="mt-0.5 text-xs text-[#7f6a58]">{{ auth()->user()->email }}</p>
+                                </div>
+                                <a href="{{ route('profile.edit') }}" class="mt-1 block rounded-[6px] px-3 py-2 text-sm font-semibold hover:bg-[#fbf6ef]">Profile</a>
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="w-full rounded-[6px] px-3 py-2 text-left text-sm font-semibold text-rose-700 hover:bg-rose-50">Log out</button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
